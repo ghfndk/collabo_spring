@@ -130,7 +130,7 @@ public class ProductController {
                 // savedProduct.setInputdate(LocalDate.now());
 
                 // 이미지가 의미 있는 문자열로 되어 있고, Base64 인코딩 형식이면 이미지 이름을 변경합니다.
-                if (updatedProduct.getImage() != null && updatedProduct.getImage().startsWith("date:image")) {
+                if (updatedProduct.getImage() != null && updatedProduct.getImage().startsWith("data:image")) {
                     String imageFileName = saveProductImage(updatedProduct.getImage());
                     savedProduct.setImage(imageFileName);
                 }
@@ -172,6 +172,17 @@ public class ProductController {
         } catch (Exception err) {
             err.printStackTrace();
             return base64Image;
+        }
+    }
+
+    @GetMapping("/detail/{id}") // 프론트 앤드가 상품에 대한 상세 정보를 요청하였습니다.
+    public ResponseEntity<Product> detail(@PathVariable Long id){
+        Product product = this.productService.getProductById(id);
+
+        if(product == null){ // 404 응답
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }else { // 200 ok 응답
+            return ResponseEntity.ok(product);
         }
     }
 }
