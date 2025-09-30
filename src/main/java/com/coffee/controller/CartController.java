@@ -38,18 +38,17 @@ public class CartController {
     private final CartService cartService;
     private final CartProductService cartProductService;
 
-    @PostMapping("/insert") // 리엑트에서 장바구니 버튼을 클릭하였습니다.
+    @PostMapping("/insert") // 리액트에서 `장바구니` 버튼을 클릭하였습니다.
     public ResponseEntity<String> addToCart(@RequestBody CartProductDto dto) {
         // Member 또는 Product이 유효한 정보인지 확인
         Optional<Member> memberOptional = memberService.findMemberById(dto.getMemberId());
         Optional<Product> productOptional = productService.findProductById(dto.getProductId());
 
-
-        if (memberOptional.isEmpty() || productOptional.isEmpty()) {// 정보가 무효하면
+        if (memberOptional.isEmpty() || productOptional.isEmpty()) { // 정보가 무효하면
             return ResponseEntity.badRequest().body("회원 또는 상품 정보가 올바르지 않습니다.");
         }
 
-        // Member 와 Product의 객체 정보 가져 오기
+        // Member와 Product의 객체 정보 가져 오기
         Member member = memberOptional.get(); // 진짜 배기 회원 정보
         Product product = productOptional.get();
 
@@ -67,12 +66,27 @@ public class CartController {
             cart = cartService.saveCart(newCart); // 데이터 베이스에 저장
         }
 
-        // 선택한 상품을 '카트 상품'에 담기
-        CartProduct cp = new CartProduct();
-        cp.setCart(cart);
-        cp.setProduct(product);
-        cp.setQuantity(dto.getQuantity());
-        cartProductService.saveCartProduct(cp);
+        // 기존에 같은 상품이 있는지 확인
+        CartProduct existingCartProduct = null;
+        for (CartProduct cp : cart.getCartProducts()) {
+            // 주의) Long 타입은 참조 자료형이르로 == 대신 equals() 메소드를 사용해야 합니다.
+            if (cp.getProduct().getId().equals(product.getId())) {
+                existingCartProduct = cp;
+                break;
+            }
+        }
+
+        if (existingCartProduct != null) { // 기존 상품이면 수량 누적
+            existingCartProduct.setQuantity(existingCartProduct.getQuantity() + dto.getQuantity());
+            cartProductService.saveCartProduct(existingCartProduct);
+
+        } else { // 새로운 상품이면 새로 추가
+            CartProduct cp = new CartProduct();
+            cp.setCart(cart);
+            cp.setProduct(product);
+            cp.setQuantity(dto.getQuantity());
+            cartProductService.saveCartProduct(cp);
+        }
 
         // 재고 수량은 차감하지 않습니다.
 
@@ -120,13 +134,13 @@ public class CartController {
             return ResponseEntity.badRequest().body(message);
         }
 
-        Optional<CartProduct> cartProductOptional = this.cartProductService.findCartProducById(cartProductId);
-        if(cartProductOptional.isEmpty()){
+        Optional<CartProduct> cartProductOptional = this.cartProductService.findCartProductById(cartProductId);
+        if (cartProductOptional.isEmpty()) {
             message = "장바구니 품목을 찾을 수 없습니다.";
             return ResponseEntity.badRequest().body(message);
         }
 
-        CartProduct cartProduct =cartProductOptional.get();
+        CartProduct cartProduct = cartProductOptional.get();
         cartProduct.setQuantity(quantity); // 기존 내용 덮어쓰기
         // cartProduct.setQuantity(cartProduct.getQuantity()+quantity); // 기존 내용에 누적
 
@@ -134,5 +148,14 @@ public class CartController {
 
         message = "카트 상품 아이디 " + cartProductId + "번이 '" + quantity + "개'로 수정이 되었습니다.";
         return ResponseEntity.ok(message);
+    }
+
+    @DeleteMapping("/delete/{cartProductId}")
+    public ResponseEntity<String> deleteCartProduct(@PathVariable Long cartProductId){
+        System.out.println("삭제할 카트 상품 아이디 :" + cartProductId);
+
+        cartProductService.deleteCartProductById(cartProductId);
+        String message = "카트 상품" + cartProductId + "번이 장바구니 목록에서 삭제 되었습니다.";
+        return ResponseEntity.ok(message) ;
     }
 }

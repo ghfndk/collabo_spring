@@ -10,13 +10,17 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CartProductService {
-    private final CartProductRepository cartProductRepository ;
+    private final CartProductRepository cartProductRepository;
 
     public void saveCartProduct(CartProduct cp) {
         this.cartProductRepository.save(cp);
     }
 
-    public Optional<CartProduct> findCartProducById(Long cartProductId) {
+    public Optional<CartProduct> findCartProductById(Long cartProductId) {
         return cartProductRepository.findById(cartProductId);
+    }
+
+    public void deleteCartProductById(Long cartProductId) {
+        this.cartProductRepository.deleteById(cartProductId);
     }
 }
