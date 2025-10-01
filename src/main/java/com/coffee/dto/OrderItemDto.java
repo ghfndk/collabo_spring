@@ -1,6 +1,5 @@
 package com.coffee.dto;
 
-import com.coffee.entity.OrderProduct;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -13,9 +12,4 @@ public class OrderItemDto {
     private  Long productId ; // 상품 번호
     private  int quantity ; // 구매 수량
 
-    public OrderItemDto(OrderProduct orderProduct){
-        this.cartProductId = orderProduct.getId();
-        this.productId = orderProduct.getProduct().getId();
-        this.quantity = orderProduct.getQuantity();
-    }
 }
