@@ -110,10 +110,10 @@ public class OrderController {
 
         if (role == Role.ADMIN) { // 관리자이면 관리자는 모든 주문 내역을 조회하기
 //            System.out.println("꽌리자");
-            orders = orderService.findAllOrders();
+            orders = orderService.findAllOrders(OrderStatus.PENDING);
         } else { // 일반인인 경우에는 자기 주문 정보만 조회하기
 //            System.out.println("일반인");
-            orders = orderService.findByMemberId(memberId);
+            orders = orderService.findByMemberId(memberId, OrderStatus.PENDING);
         }
 
         System.out.println("주무 건수 :" + orders.size());
